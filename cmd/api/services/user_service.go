@@ -4,9 +4,9 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/tshivanshu9/budget-be-go/cmd/api/requests"
-	"github.com/tshivanshu9/budget-be-go/common"
-	"github.com/tshivanshu9/budget-be-go/internal/models"
+	"github.com/tshivanshu9/budget-be/cmd/api/requests"
+	"github.com/tshivanshu9/budget-be/common"
+	"github.com/tshivanshu9/budget-be/internal/models"
 	"gorm.io/gorm"
 )
 

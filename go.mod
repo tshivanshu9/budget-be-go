@@ -1,4 +1,4 @@
-module github.com/tshivanshu9/budget-be-go
+module github.com/tshivanshu9/budget-be
 
 go 1.25.0
 

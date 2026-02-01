@@ -7,7 +7,7 @@ import (
 
 	"github.com/go-playground/validator/v10"
 	"github.com/labstack/echo/v5"
-	"github.com/tshivanshu9/budget-be-go/common"
+	"github.com/tshivanshu9/budget-be/common"
 )
 
 func (h *Handler) ValidateBodyRequest(c *echo.Context, payload interface{}) []*common.ValidationError {
