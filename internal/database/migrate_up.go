@@ -1,8 +1,8 @@
 package main
 
 import (
-	"github.com/tshivanshu9/budget-be/common"
-	"github.com/tshivanshu9/budget-be/internal/models"
+	"github.com/tshivanshu9/budget-be-go/common"
+	"github.com/tshivanshu9/budget-be-go/internal/models"
 )
 
 func main() {

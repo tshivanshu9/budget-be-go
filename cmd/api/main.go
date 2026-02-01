@@ -10,9 +10,9 @@ import (
 	"github.com/joho/godotenv"
 	"github.com/labstack/echo/v5"
 	"github.com/labstack/echo/v5/middleware"
-	"github.com/tshivanshu9/budget-be/cmd/api/handlers"
-	"github.com/tshivanshu9/budget-be/cmd/api/middlewares"
-	"github.com/tshivanshu9/budget-be/common"
+	"github.com/tshivanshu9/budget-be-go/cmd/api/handlers"
+	"github.com/tshivanshu9/budget-be-go/cmd/api/middlewares"
+	"github.com/tshivanshu9/budget-be-go/common"
 )
 
 type Application struct {

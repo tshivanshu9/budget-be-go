@@ -5,9 +5,9 @@ import (
 	"fmt"
 
 	"github.com/labstack/echo/v5"
-	"github.com/tshivanshu9/budget-be/cmd/api/requests"
-	"github.com/tshivanshu9/budget-be/cmd/api/services"
-	"github.com/tshivanshu9/budget-be/common"
+	"github.com/tshivanshu9/budget-be-go/cmd/api/requests"
+	"github.com/tshivanshu9/budget-be-go/cmd/api/services"
+	"github.com/tshivanshu9/budget-be-go/common"
 	"gorm.io/gorm"
 )
 
@@ -39,4 +39,4 @@ func (h *Handler) RegisterHandler(c *echo.Context) error {
 	}
 
 	return common.SendSuccessResponse(*c, "User registration successful", createdUser)
-} 
+}

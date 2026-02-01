@@ -4,23 +4,21 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/tshivanshu9/budget-be/cmd/api/requests"
-	"github.com/tshivanshu9/budget-be/common"
-	"github.com/tshivanshu9/budget-be/internal/models"
+	"github.com/tshivanshu9/budget-be-go/cmd/api/requests"
+	"github.com/tshivanshu9/budget-be-go/common"
+	"github.com/tshivanshu9/budget-be-go/internal/models"
 	"gorm.io/gorm"
 )
-
 
 type UserService struct {
 	db *gorm.DB
 }
 
-
 func NewUserService(db *gorm.DB) *UserService {
 	return &UserService{db: db}
 }
 
-func (userService *UserService)  RegisterUser(userRequest *requests.RegisterUserRequest) (*models.UserModel, error) {
+func (userService *UserService) RegisterUser(userRequest *requests.RegisterUserRequest) (*models.UserModel, error) {
 	hashedPassword, err := common.HashPassword(userRequest.Password)
 	if err != nil {
 		fmt.Println(err)
@@ -28,10 +26,10 @@ func (userService *UserService)  RegisterUser(userRequest *requests.RegisterUser
 	}
 
 	createdUser := models.UserModel{
-		Email: userRequest.Email,
-		Password: hashedPassword,
+		Email:     userRequest.Email,
+		Password:  hashedPassword,
 		FirstName: &userRequest.FirstName,
-		LastName: &userRequest.LastName,
+		LastName:  &userRequest.LastName,
 	}
 
 	result := userService.db.Create(&createdUser)
@@ -43,7 +41,7 @@ func (userService *UserService)  RegisterUser(userRequest *requests.RegisterUser
 }
 
 func (userService *UserService) GetUserByEmail(email string) (*models.UserModel, error) {
-	var user models.UserModel 
+	var user models.UserModel
 	result := userService.db.Where("email = ?", email).First(&user)
 	if result.Error != nil {
 		return nil, result.Error

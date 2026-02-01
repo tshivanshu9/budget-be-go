@@ -7,7 +7,7 @@ import (
 
 	"github.com/go-playground/validator/v10"
 	"github.com/labstack/echo/v5"
-	"github.com/tshivanshu9/budget-be/common"
+	"github.com/tshivanshu9/budget-be-go/common"
 )
 
 func (h *Handler) ValidateBodyRequest(c *echo.Context, payload interface{}) []*common.ValidationError {
@@ -15,10 +15,10 @@ func (h *Handler) ValidateBodyRequest(c *echo.Context, payload interface{}) []*c
 	validate := validator.New(validator.WithRequiredStructEnabled())
 
 	err := validate.Struct(payload)
-	if (err != nil) {
+	if err != nil {
 		if validationErrors, ok := err.(validator.ValidationErrors); ok {
 			reflected := reflect.ValueOf(payload)
-			for _, validationError := range validationErrors{
+			for _, validationError := range validationErrors {
 				field, _ := reflected.Type().FieldByName(validationError.StructField())
 				key := field.Tag.Get("json")
 				if key == "" {
@@ -37,8 +37,8 @@ func (h *Handler) ValidateBodyRequest(c *echo.Context, payload interface{}) []*c
 
 				fmt.Println(validationError.Field())
 				currentValidationError := common.ValidationError{
-					Error: errMessage,
-					Key: key,
+					Error:     errMessage,
+					Key:       key,
 					Condition: condition,
 				}
 				errors = append(errors, &currentValidationError)
