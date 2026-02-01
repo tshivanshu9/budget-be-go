@@ -19,21 +19,21 @@ type JSONSuccessResponse struct {
 }
 
 type JSONFailedValidationResponse struct {
-	Success bool                        `json:"success"`
-	Message string                      `json:"message,omitempty"`
+	Success bool               `json:"success"`
+	Message string             `json:"message,omitempty"`
 	Errors  []*ValidationError `json:"errors"`
 }
 
 type JSONErrorResponse struct {
-	Success bool                        `json:"success"`
-	Message string                      `json:"message"`
+	Success bool   `json:"success"`
+	Message string `json:"message"`
 }
 
 func SendSuccessResponse(c echo.Context, message string, data interface{}) error {
 	return c.JSON(http.StatusOK, JSONSuccessResponse{
 		Success: true,
 		Message: message,
-		Data: data,
+		Data:    data,
 	})
 }
 
@@ -41,7 +41,7 @@ func SendFailedValidationResponse(c echo.Context, errors []*ValidationError) err
 	return c.JSON(http.StatusUnprocessableEntity, JSONFailedValidationResponse{
 		Success: false,
 		Message: "Validation Failed",
-		Errors: errors,
+		Errors:  errors,
 	})
 }
 

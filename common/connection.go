@@ -9,7 +9,7 @@ import (
 	"gorm.io/gorm"
 )
 
-func NewMysql()(*gorm.DB, error) {
+func NewMysql() (*gorm.DB, error) {
 	err := godotenv.Load()
 	if err != nil {
 		panic("Error loading env file")
