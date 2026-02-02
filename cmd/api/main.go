@@ -13,6 +13,7 @@ import (
 	"github.com/tshivanshu9/budget-be/cmd/api/handlers"
 	"github.com/tshivanshu9/budget-be/cmd/api/middlewares"
 	"github.com/tshivanshu9/budget-be/common"
+	"github.com/tshivanshu9/budget-be/internal/mailer"
 )
 
 type Application struct {
@@ -43,8 +44,11 @@ func main() {
 	// 	return c.String(http.StatusOK, "Hello, World!")
 	// })
 
+	appMailer := mailer.NewMailer()
+
 	h := &handlers.Handler{
-		DB: db,
+		DB:     db,
+		Mailer: appMailer,
 	}
 
 	app := Application{
