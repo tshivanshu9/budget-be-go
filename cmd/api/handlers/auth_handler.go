@@ -10,6 +10,7 @@ import (
 	"github.com/tshivanshu9/budget-be/cmd/api/services"
 	"github.com/tshivanshu9/budget-be/common"
 	"github.com/tshivanshu9/budget-be/internal/mailer"
+	"github.com/tshivanshu9/budget-be/internal/models"
 	"gorm.io/gorm"
 )
 
@@ -18,26 +19,26 @@ func (h *Handler) RegisterHandler(c *echo.Context) error {
 	err := (&echo.DefaultBinder{}).Bind(c, payload)
 	if err != nil {
 		fmt.Println(err)
-		return common.SendBadRequestResponse(*c, err.Error())
+		return common.SendBadRequestResponse(c, err.Error())
 	}
 
 	fmt.Println(payload)
 	validationErrors := h.ValidateBodyRequest(c, *payload)
 	fmt.Println(validationErrors)
 	if validationErrors != nil {
-		return common.SendFailedValidationResponse(*c, validationErrors)
+		return common.SendFailedValidationResponse(c, validationErrors)
 	}
 
 	userService := services.NewUserService(h.DB)
 	user, err := userService.GetUserByEmail(payload.Email)
 	if errors.Is(err, gorm.ErrRecordNotFound) == false && user != nil {
-		return common.SendBadRequestResponse(*c, "User with this email already exists")
+		return common.SendBadRequestResponse(c, "User with this email already exists")
 	}
 
 	createdUser, err := userService.RegisterUser(payload)
 	if err != nil {
 		fmt.Println(err)
-		return common.SendInternalServerErrorResponse(*c, "User registration failed")
+		return common.SendInternalServerErrorResponse(c, "User registration failed")
 	}
 
 	mailData := mailer.EmailData{
@@ -55,7 +56,7 @@ func (h *Handler) RegisterHandler(c *echo.Context) error {
 	if err != nil {
 		fmt.Println(err)
 	}
-	return common.SendSuccessResponse(*c, "User registration successful", createdUser)
+	return common.SendSuccessResponse(c, "User registration successful", createdUser)
 }
 
 func (h *Handler) LoginHandler(c *echo.Context) error {
@@ -63,35 +64,43 @@ func (h *Handler) LoginHandler(c *echo.Context) error {
 	err := (&echo.DefaultBinder{}).Bind(c, payload)
 	if err != nil {
 		fmt.Println(err)
-		return common.SendBadRequestResponse(*c, err.Error())
+		return common.SendBadRequestResponse(c, err.Error())
 	}
 
 	validationErrors := h.ValidateBodyRequest(c, *payload)
 	if validationErrors != nil {
-		return common.SendFailedValidationResponse(*c, validationErrors)
+		return common.SendFailedValidationResponse(c, validationErrors)
 	}
 
 	userService := services.NewUserService(h.DB)
 	user, err := userService.GetUserByEmail(payload.Email)
 	if errors.Is(err, gorm.ErrRecordNotFound) {
 		fmt.Println(err)
-		return common.SendBadRequestResponse(*c, "Invalid credentials")
+		return common.SendBadRequestResponse(c, "Invalid credentials")
 	}
 
 	fmt.Println(user)
 
 	if !common.ComparePasswordHash(payload.Password, user.Password) {
-		return common.SendBadRequestResponse(*c, "Invalid credentials")
+		return common.SendBadRequestResponse(c, "Invalid credentials")
 	}
 
 	accessToken, refreshToken, err := common.GenerateJWT(*user)
 	if err != nil {
-		return common.SendInternalServerErrorResponse(*c, "Failed to generate tokens")
+		return common.SendInternalServerErrorResponse(c, "Failed to generate tokens")
 	}
 
-	return common.SendSuccessResponse(*c, "Login successful", map[string]interface{}{
+	return common.SendSuccessResponse(c, "Login successful", map[string]interface{}{
 		"access_token":  accessToken,
 		"refresh_token": refreshToken,
 		"user":          user,
 	})
+}
+
+func (h *Handler) GetAuthenticatedUser(c *echo.Context) error {
+	user, ok := c.Get("user").(models.UserModel)
+	if !ok {
+		return common.SendUnauthorizedResponse(c, nil)
+	}
+	return common.SendSuccessResponse(c, "Authenticated User retrieved", user)
 }

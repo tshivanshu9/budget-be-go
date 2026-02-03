@@ -29,7 +29,7 @@ type JSONErrorResponse struct {
 	Message string `json:"message"`
 }
 
-func SendSuccessResponse(c echo.Context, message string, data interface{}) error {
+func SendSuccessResponse(c *echo.Context, message string, data interface{}) error {
 	return c.JSON(http.StatusOK, JSONSuccessResponse{
 		Success: true,
 		Message: message,
@@ -37,7 +37,7 @@ func SendSuccessResponse(c echo.Context, message string, data interface{}) error
 	})
 }
 
-func SendFailedValidationResponse(c echo.Context, errors []*ValidationError) error {
+func SendFailedValidationResponse(c *echo.Context, errors []*ValidationError) error {
 	return c.JSON(http.StatusUnprocessableEntity, JSONFailedValidationResponse{
 		Success: false,
 		Message: "Validation Failed",
@@ -45,17 +45,25 @@ func SendFailedValidationResponse(c echo.Context, errors []*ValidationError) err
 	})
 }
 
-func SendErrorResponse(c echo.Context, message string, statusCode int) error {
+func SendErrorResponse(c *echo.Context, message string, statusCode int) error {
 	return c.JSON(statusCode, JSONErrorResponse{
 		Success: false,
 		Message: message,
 	})
 }
 
-func SendBadRequestResponse(c echo.Context, message string) error {
+func SendBadRequestResponse(c *echo.Context, message string) error {
 	return SendErrorResponse(c, message, http.StatusBadRequest)
 }
 
-func SendInternalServerErrorResponse(c echo.Context, message string) error {
+func SendInternalServerErrorResponse(c *echo.Context, message string) error {
 	return SendErrorResponse(c, message, http.StatusInternalServerError)
+}
+
+func SendUnauthorizedResponse(c *echo.Context, message *string) error {
+	if message == nil {
+		defaultMessage := "Unauthorized"
+		message = &defaultMessage
+	}
+	return SendErrorResponse(c, *message, http.StatusUnauthorized)
 }

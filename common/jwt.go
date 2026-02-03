@@ -54,8 +54,11 @@ func ParseJWT(token string) (*CustomJWTClaims, error) {
 		return nil, err
 	} else if claims, ok := parsedToken.Claims.(CustomJWTClaims); ok {
 		return &claims, nil
-	} else {
-		return nil, errors.New("unknown jwt claims")
 	}
+	return nil, errors.New("unknown jwt claims")
+}
 
+func IsClaimExpired(claims *CustomJWTClaims) bool {
+	currentTime := jwt.NewNumericDate(time.Now())
+	return claims.ExpiresAt.Time.Before(currentTime.Time)
 }

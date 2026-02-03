@@ -17,9 +17,10 @@ import (
 )
 
 type Application struct {
-	logger  *slog.Logger
-	server  *echo.Echo
-	handler *handlers.Handler
+	logger        *slog.Logger
+	server        *echo.Echo
+	handler       *handlers.Handler
+	appMiddleware middlewares.AppMiddleware
 }
 
 func main() {
@@ -51,10 +52,15 @@ func main() {
 		Mailer: appMailer,
 	}
 
+	appMiddleware := middlewares.AppMiddleware{
+		DB: db,
+	}
+
 	app := Application{
-		logger:  slog.Default(),
-		server:  e,
-		handler: h,
+		logger:        slog.Default(),
+		server:        e,
+		handler:       h,
+		appMiddleware: appMiddleware,
 	}
 
 	// e.GET("/", func(c echo.Context) error {
