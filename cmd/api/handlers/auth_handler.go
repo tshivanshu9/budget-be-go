@@ -104,3 +104,7 @@ func (h *Handler) GetAuthenticatedUser(c *echo.Context) error {
 	}
 	return common.SendSuccessResponse(c, "Authenticated User retrieved", user)
 }
+
+func (h *Handler) UpdateUserPassword(c *echo.Context) error {
+	return nil
+}
