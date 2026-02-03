@@ -57,3 +57,41 @@ func (h *Handler) RegisterHandler(c *echo.Context) error {
 	}
 	return common.SendSuccessResponse(*c, "User registration successful", createdUser)
 }
+
+func (h *Handler) LoginHandler(c *echo.Context) error {
+	payload := new(requests.LoginUserRequest)
+	err := (&echo.DefaultBinder{}).Bind(c, payload)
+	if err != nil {
+		fmt.Println(err)
+		return common.SendBadRequestResponse(*c, err.Error())
+	}
+
+	validationErrors := h.ValidateBodyRequest(c, *payload)
+	if validationErrors != nil {
+		return common.SendFailedValidationResponse(*c, validationErrors)
+	}
+
+	userService := services.NewUserService(h.DB)
+	user, err := userService.GetUserByEmail(payload.Email)
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		fmt.Println(err)
+		return common.SendBadRequestResponse(*c, "Invalid credentials")
+	}
+
+	fmt.Println(user)
+
+	if !common.ComparePasswordHash(payload.Password, user.Password) {
+		return common.SendBadRequestResponse(*c, "Invalid credentials")
+	}
+
+	accessToken, refreshToken, err := common.GenerateJWT(*user)
+	if err != nil {
+		return common.SendInternalServerErrorResponse(*c, "Failed to generate tokens")
+	}
+
+	return common.SendSuccessResponse(*c, "Login successful", map[string]interface{}{
+		"access_token":  accessToken,
+		"refresh_token": refreshToken,
+		"user":          user,
+	})
+}

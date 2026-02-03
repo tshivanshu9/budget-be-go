@@ -26,6 +26,7 @@ func (h *Handler) ValidateBodyRequest(c *echo.Context, payload interface{}) []*c
 				}
 				condition := validationError.Tag()
 				keyToTitleCase := strings.Replace(key, "_", " ", -1)
+				param := validationError.Param()
 				errMessage := keyToTitleCase + " field is " + condition
 
 				switch condition {
@@ -33,6 +34,8 @@ func (h *Handler) ValidateBodyRequest(c *echo.Context, payload interface{}) []*c
 					errMessage = keyToTitleCase + " is required"
 				case "email":
 					errMessage = keyToTitleCase + " must be a valid email"
+				case "min":
+					errMessage = fmt.Sprintf("%s must be atleast %s", keyToTitleCase, param)
 				}
 
 				fmt.Println(validationError.Field())
