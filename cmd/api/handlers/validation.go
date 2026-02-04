@@ -36,6 +36,8 @@ func (h *Handler) ValidateBodyRequest(c *echo.Context, payload interface{}) []*c
 					errMessage = keyToTitleCase + " must be a valid email"
 				case "min":
 					errMessage = fmt.Sprintf("%s must be atleast %s", keyToTitleCase, param)
+				case "eqfield":
+					errMessage = fmt.Sprintf("%s must be equal to %s", keyToTitleCase, strings.ToLower(param))
 				}
 
 				fmt.Println(validationError.Field())

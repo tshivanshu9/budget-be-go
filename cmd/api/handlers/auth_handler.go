@@ -16,7 +16,7 @@ import (
 
 func (h *Handler) RegisterHandler(c *echo.Context) error {
 	payload := new(requests.RegisterUserRequest)
-	err := (&echo.DefaultBinder{}).Bind(c, payload)
+	err := h.BindRequestBody(c, payload)
 	if err != nil {
 		fmt.Println(err)
 		return common.SendBadRequestResponse(c, err.Error())
@@ -103,8 +103,4 @@ func (h *Handler) GetAuthenticatedUser(c *echo.Context) error {
 		return common.SendUnauthorizedResponse(c, nil)
 	}
 	return common.SendSuccessResponse(c, "Authenticated User retrieved", user)
-}
-
-func (h *Handler) UpdateUserPassword(c *echo.Context) error {
-	return nil
 }
