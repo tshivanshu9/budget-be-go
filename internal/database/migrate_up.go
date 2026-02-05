@@ -11,7 +11,7 @@ func main() {
 		panic("Failed to connect to database!")
 	}
 
-	err = db.AutoMigrate(&models.UserModel{})
+	err = db.AutoMigrate(&models.UserModel{}, &models.AppTokenModel{})
 	if err != nil {
 		panic(err)
 	}

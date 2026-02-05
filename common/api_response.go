@@ -67,3 +67,7 @@ func SendUnauthorizedResponse(c *echo.Context, message *string) error {
 	}
 	return SendErrorResponse(c, *message, http.StatusUnauthorized)
 }
+
+func SendNotFoundResponse(c *echo.Context, message string) error {
+	return SendErrorResponse(c, message, http.StatusNotFound)
+}

@@ -34,7 +34,7 @@ func (h *Handler) ChangeUserPassword(c *echo.Context) error {
 	}
 
 	userService := services.NewUserService(h.DB)
-	err = userService.ChangeUserPassword(payload.Password, user)
+	err = userService.ChangeUserPassword(payload.Password, user.ID)
 	if err != nil {
 		fmt.Println(err)
 		return common.SendInternalServerErrorResponse(c, err.Error())
