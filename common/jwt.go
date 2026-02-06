@@ -52,8 +52,8 @@ func ParseJWT(token string) (*CustomJWTClaims, error) {
 	if err != nil {
 		fmt.Println("Error in parsing jwt", err)
 		return nil, err
-	} else if claims, ok := parsedToken.Claims.(CustomJWTClaims); ok {
-		return &claims, nil
+	} else if claims, ok := parsedToken.Claims.(*CustomJWTClaims); ok {
+		return claims, nil
 	}
 	return nil, errors.New("unknown jwt claims")
 }

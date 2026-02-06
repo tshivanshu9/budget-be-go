@@ -18,6 +18,9 @@ func (h *Handler) ValidateBodyRequest(c *echo.Context, payload interface{}) []*c
 	if err != nil {
 		if validationErrors, ok := err.(validator.ValidationErrors); ok {
 			reflected := reflect.ValueOf(payload)
+			if reflected.Kind() == reflect.Ptr {
+				reflected = reflected.Elem()
+			}
 			for _, validationError := range validationErrors {
 				field, _ := reflected.Type().FieldByName(validationError.StructField())
 				key := field.Tag.Get("json")

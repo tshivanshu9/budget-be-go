@@ -15,5 +15,12 @@ func (app *Application) routes() {
 		profileRoutes.GET("/authenticated/user", app.handler.GetAuthenticatedUser)
 		profileRoutes.PATCH("/update/password", app.handler.ChangeUserPassword)
 	}
+
+	categoryRoutes := apiGroup.Group("/categories", app.appMiddleware.AuthenticationMiddleware)
+	{
+		categoryRoutes.GET("/all", app.handler.ListCategoriesHandler)
+		categoryRoutes.POST("/create", app.handler.CreateCategoryHandler)
+		categoryRoutes.DELETE("/delete/:id", app.handler.DeleteCategoryHandler)
+	}
 	app.server.GET("/", app.handler.Healthcheck)
 }
