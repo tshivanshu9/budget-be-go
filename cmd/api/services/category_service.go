@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/tshivanshu9/budget-be/cmd/api/requests"
+	"github.com/tshivanshu9/budget-be/common"
 	"github.com/tshivanshu9/budget-be/internal/custom_errors"
 	"github.com/tshivanshu9/budget-be/internal/models"
 	"gorm.io/gorm"
@@ -18,13 +19,14 @@ func NewCategoryService(db *gorm.DB) *CategoryService {
 	return &CategoryService{db: db}
 }
 
-func (categoryService *CategoryService) List() ([]*models.CategoryModel, error) {
-	var categories []*models.CategoryModel
-	result := categoryService.db.Find(&categories)
+func (categoryService *CategoryService) List(categories []*models.CategoryModel, pagination *common.Pagination) (*common.Pagination, error) {
+	result := categoryService.db.Scopes(pagination.Paginate()).Find(&categories)
 	if result.Error != nil {
 		return nil, errors.New("failed to fetch categories")
 	}
-	return categories, nil
+
+	pagination.Items = categories
+	return pagination, nil
 }
 
 func (categoryService *CategoryService) Create(data *requests.CreateCategoryRequest) (*models.CategoryModel, error) {

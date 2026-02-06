@@ -5,15 +5,18 @@ import (
 	"github.com/tshivanshu9/budget-be/cmd/api/requests"
 	"github.com/tshivanshu9/budget-be/cmd/api/services"
 	"github.com/tshivanshu9/budget-be/common"
+	"github.com/tshivanshu9/budget-be/internal/models"
 )
 
 func (h *Handler) ListCategoriesHandler(c *echo.Context) error {
 	categoryService := services.NewCategoryService(h.DB)
-	categories, err := categoryService.List()
+	var categories []*models.CategoryModel
+	paginator := common.NewPaginator(categories, c.Request(), h.DB)
+	paginatedCategory, err := categoryService.List(categories, paginator)
 	if err != nil {
 		return common.SendInternalServerErrorResponse(c, err.Error())
 	}
-	return common.SendSuccessResponse(c, "Categories list fetched successfully", categories)
+	return common.SendSuccessResponse(c, "Categories list fetched successfully", paginatedCategory)
 }
 
 func (h *Handler) CreateCategoryHandler(c *echo.Context) error {
