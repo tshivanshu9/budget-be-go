@@ -22,5 +22,10 @@ func (app *Application) routes() {
 		categoryRoutes.POST("/create", app.handler.CreateCategoryHandler)
 		categoryRoutes.DELETE("/delete/:id", app.handler.DeleteCategoryHandler)
 	}
+
+	budgetRoutes := apiGroup.Group("/budgets", app.appMiddleware.AuthenticationMiddleware)
+	{
+		budgetRoutes.POST("/create", app.handler.CreateBudgetHandler)
+	}
 	app.server.GET("/", app.handler.Healthcheck)
 }

@@ -66,3 +66,15 @@ func (categoryService *CategoryService) DeleteById(id uint) error {
 	}
 	return nil
 }
+
+func (categoryService *CategoryService) GetCategoriesByIds(ids []uint) ([]*models.CategoryModel, error) {
+	if len(ids) == 0 {
+		return []*models.CategoryModel{}, nil
+	}
+	var categories []*models.CategoryModel
+	result := categoryService.db.Where("id IN ?", ids).Find(&categories)
+	if result.Error != nil {
+		return nil, errors.New("failed to fetch categories")
+	}
+	return categories, nil
+}
