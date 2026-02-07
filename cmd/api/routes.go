@@ -27,6 +27,7 @@ func (app *Application) routes() {
 	{
 		budgetRoutes.POST("/create", app.handler.CreateBudgetHandler)
 		budgetRoutes.GET("/all", app.handler.ListBudgetsHandler)
+		budgetRoutes.PUT("/:id/update", app.handler.UpdateBudgetHandler)
 	}
 	app.server.GET("/", app.handler.Healthcheck)
 }

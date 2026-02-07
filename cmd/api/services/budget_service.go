@@ -85,3 +85,63 @@ func (budgetService *BudgetService) List(userId uint, pagination *common.Paginat
 	pagination.Items = budgets
 	return pagination, nil
 }
+
+func (budgetService *BudgetService) GetById(id uint) (*models.BudgetModel, error) {
+	var budget models.BudgetModel
+	result := budgetService.DB.Scopes(common.WhereIdScope(id)).First(&budget)
+
+	if result.Error != nil {
+		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+			return nil, custom_errors.NewNotFoundError("budget not found")
+		}
+		return nil, errors.New("failed to fetch budget")
+	}
+	return &budget, nil
+}
+
+func (budgetService *BudgetService) countForYearMonthSlugUserIdExcludeBudgetId(userId uint, slug string, year uint16, month uint8, budgetId uint) (int64, error) {
+	var count int64
+	result := budgetService.DB.Model(&models.BudgetModel{}).Where("user_id = ? AND slug = ? AND year = ? AND month = ? AND id <> ?", userId, slug, year, month, budgetId).Count(&count)
+	if result.Error != nil {
+		return 0, result.Error
+	}
+	return count, nil
+}
+
+func (budgetService *BudgetService) Update(budget *models.BudgetModel, payload *requests.UpdateBudgetRequest) error {
+	if payload.Date != "" {
+		timeParsed, err := time.Parse(time.DateOnly, payload.Date)
+		if err != nil {
+			return errors.New("invalid date format, expected YYYY-MM-DD")
+		}
+		budget.Date = timeParsed
+		budget.Month = uint8(timeParsed.Month())
+		budget.Year = uint16(timeParsed.Year())
+	}
+	if payload.Amount > 0 {
+		budget.Amount = payload.Amount
+	}
+	if payload.Description != nil {
+		budget.Description = payload.Description
+	}
+	if payload.Title != "" {
+		budget.Title = payload.Title
+		slug := strings.ToLower(payload.Title)
+		slug = strings.ReplaceAll(slug, " ", "-")
+		budget.Slug = slug
+	}
+
+	count, err := budgetService.countForYearMonthSlugUserIdExcludeBudgetId(budget.UserId, budget.Slug, budget.Year, budget.Month, budget.ID)
+	if err != nil {
+		return errors.New("failed to update budget")
+	}
+	if count > 0 {
+		return errors.New("another budget with same title exists for the month, please choose different title or month")
+	}
+
+	result := budgetService.DB.Model(&budget).Updates(budget)
+	if result.Error != nil {
+		return errors.New("failed to update budget")
+	}
+	return nil
+}
