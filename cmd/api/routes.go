@@ -26,6 +26,7 @@ func (app *Application) routes() {
 	budgetRoutes := apiGroup.Group("/budgets", app.appMiddleware.AuthenticationMiddleware)
 	{
 		budgetRoutes.POST("/create", app.handler.CreateBudgetHandler)
+		budgetRoutes.GET("/all", app.handler.ListBudgetsHandler)
 	}
 	app.server.GET("/", app.handler.Healthcheck)
 }

@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/tshivanshu9/budget-be/cmd/api/requests"
+	"github.com/tshivanshu9/budget-be/common"
 	"github.com/tshivanshu9/budget-be/internal/custom_errors"
 	"github.com/tshivanshu9/budget-be/internal/models"
 	"gorm.io/gorm"
@@ -46,12 +47,16 @@ func (budgetService *BudgetService) Create(payload *requests.StoreBudgetRequest,
 		model.Year = uint16(parsedDate.Year())
 	}
 	retrievedBudget, err := budgetService.budgetExistsForYearMonthSlugUserid(userId, model.Slug, model.Year, model.Month)
-	if err != nil && errors.Is(err, custom_errors.NewNotFoundError("budget not found")) {
-		result := budgetService.DB.Create(model)
-		if result.Error != nil {
-			return nil, errors.New("failed to create budget")
+	if err != nil {
+		var notFoundErr *custom_errors.NotFoundError
+		if errors.As(err, &notFoundErr) {
+			result := budgetService.DB.Create(model)
+			if result.Error != nil {
+				return nil, errors.New("failed to create budget")
+			}
+			return model, nil
 		}
-		return model, nil
+		return nil, err
 	}
 	return retrievedBudget, nil
 }
@@ -66,4 +71,17 @@ func (budgetService *BudgetService) budgetExistsForYearMonthSlugUserid(userId ui
 		return nil, result.Error
 	}
 	return &budget, nil
+}
+
+func (budgetService *BudgetService) List(userId uint, pagination *common.Pagination) (*common.Pagination, error) {
+	var budgets []*models.BudgetModel
+	result := budgetService.DB.
+		Scopes(common.WhereUserIdScope(userId)).
+		Scopes(pagination.Paginate()).
+		Preload("Categories").Find(&budgets)
+	if result.Error != nil {
+		return nil, errors.New("failed to fetch budgets")
+	}
+	pagination.Items = budgets
+	return pagination, nil
 }
