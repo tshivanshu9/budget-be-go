@@ -141,3 +141,38 @@ func (h *Handler) UpdateBudgetHandler(c *echo.Context) error {
 
 	return common.SendSuccessResponse(c, "Budget updated successfully", budget)
 }
+
+func (h *Handler) DeleteBudgetHandler(c *echo.Context) error {
+	user, ok := c.Get("user").(models.UserModel)
+	if !ok {
+		return common.SendUnauthorizedResponse(c, nil)
+	}
+
+	budgetIdInt, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		return common.SendBadRequestResponse(c, "Invalid budget id")
+	}
+	budgetId := uint(budgetIdInt)
+
+	budgetService := services.NewBudgetService(h.DB)
+
+	budget, err := budgetService.GetById(budgetId)
+	if budget.UserId != user.ID {
+		return common.SendBadRequestResponse(c, "Invalid budget id")
+	}
+	if err != nil {
+		var notFoundErr *custom_errors.NotFoundError
+		if errors.As(err, &notFoundErr) {
+			return common.SendNotFoundResponse(c, "Budget not found")
+		}
+		return common.SendInternalServerErrorResponse(c, "Failed to fetch budget")
+	}
+
+	err = budgetService.Delete(budget)
+	if err != nil {
+		fmt.Println(err)
+		return common.SendInternalServerErrorResponse(c, "Failed to delete budget")
+	}
+
+	return common.SendSuccessResponse(c, "Budget deleted successfully", nil)
+}

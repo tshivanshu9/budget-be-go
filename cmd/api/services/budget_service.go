@@ -2,6 +2,7 @@ package services
 
 import (
 	"errors"
+	"fmt"
 	"strings"
 	"time"
 
@@ -142,6 +143,19 @@ func (budgetService *BudgetService) Update(budget *models.BudgetModel, payload *
 	result := budgetService.DB.Model(&budget).Updates(budget)
 	if result.Error != nil {
 		return errors.New("failed to update budget")
+	}
+	return nil
+}
+
+func (budgetService *BudgetService) Delete(budget *models.BudgetModel) error {
+	err := budgetService.DB.Model(budget).Association("Categories").Clear()
+	if err != nil {
+		fmt.Println(err)
+		return errors.New("failed to clear budget categories")
+	}
+	result := budgetService.DB.Delete(budget)
+	if result.Error != nil {
+		return errors.New("failed to delete budget")
 	}
 	return nil
 }

@@ -28,6 +28,7 @@ func (app *Application) routes() {
 		budgetRoutes.POST("/create", app.handler.CreateBudgetHandler)
 		budgetRoutes.GET("/all", app.handler.ListBudgetsHandler)
 		budgetRoutes.PUT("/:id/update", app.handler.UpdateBudgetHandler)
+		budgetRoutes.DELETE("/:id/delete", app.handler.DeleteBudgetHandler)
 	}
 	app.server.GET("/", app.handler.Healthcheck)
 }

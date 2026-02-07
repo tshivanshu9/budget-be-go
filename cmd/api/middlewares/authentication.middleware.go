@@ -2,7 +2,6 @@ package middlewares
 
 import (
 	"errors"
-	"fmt"
 	"strings"
 
 	"github.com/labstack/echo/v5"
@@ -22,7 +21,6 @@ func (am *AppMiddleware) AuthenticationMiddleware(next echo.HandlerFunc) echo.Ha
 		if !strings.HasPrefix(authHeader, "Bearer ") {
 			return common.SendUnauthorizedResponse(c, nil)
 		}
-		fmt.Println(authHeader)
 
 		authHeaderSplit := strings.Split(authHeader, " ")
 		accessToken := authHeaderSplit[1]
