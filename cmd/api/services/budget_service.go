@@ -153,7 +153,7 @@ func (budgetService *BudgetService) Delete(budget *models.BudgetModel) error {
 		fmt.Println(err)
 		return errors.New("failed to clear budget categories")
 	}
-	result := budgetService.DB.Delete(budget)
+	result := budgetService.DB.Unscoped().Delete(budget)
 	if result.Error != nil {
 		return errors.New("failed to delete budget")
 	}

@@ -12,15 +12,15 @@ import (
 )
 
 type CategoryService struct {
-	db *gorm.DB
+	Db *gorm.DB
 }
 
-func NewCategoryService(db *gorm.DB) *CategoryService {
-	return &CategoryService{db: db}
+func NewCategoryService(Db *gorm.DB) *CategoryService {
+	return &CategoryService{Db: Db}
 }
 
 func (categoryService *CategoryService) List(categories []*models.CategoryModel, pagination *common.Pagination) (*common.Pagination, error) {
-	result := categoryService.db.Scopes(pagination.Paginate()).Find(&categories)
+	result := categoryService.Db.Scopes(pagination.Paginate()).Find(&categories)
 	if result.Error != nil {
 		return nil, errors.New("failed to fetch categories")
 	}
@@ -35,9 +35,9 @@ func (categoryService *CategoryService) Create(data *requests.CreateCategoryRequ
 	category := &models.CategoryModel{
 		Name:     data.Name,
 		Slug:     slug,
-		IsCustom: data.IsCustome,
+		IsCustom: data.IsCustom,
 	}
-	result := categoryService.db.Where("slug = ?", slug).FirstOrCreate(category)
+	result := categoryService.Db.Where("slug = ?", slug).FirstOrCreate(category)
 	if result.Error != nil {
 		if errors.Is(result.Error, gorm.ErrDuplicatedKey) {
 			return category, nil
@@ -49,7 +49,7 @@ func (categoryService *CategoryService) Create(data *requests.CreateCategoryRequ
 
 func (categoryService *CategoryService) GetById(id uint) (*models.CategoryModel, error) {
 	var category models.CategoryModel
-	result := categoryService.db.Where("id = ?", id).First(&category)
+	result := categoryService.Db.Where("id = ?", id).First(&category)
 	if result.Error != nil {
 		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
 			return nil, custom_errors.NewNotFoundError("category not found")
@@ -60,7 +60,7 @@ func (categoryService *CategoryService) GetById(id uint) (*models.CategoryModel,
 }
 
 func (categoryService *CategoryService) DeleteById(id uint) error {
-	result := categoryService.db.Where("id = ?", id).Delete(&models.CategoryModel{})
+	result := categoryService.Db.Where("id = ?", id).Delete(&models.CategoryModel{})
 	if result.Error != nil {
 		return errors.New("failed to delete category")
 	}
@@ -72,7 +72,7 @@ func (categoryService *CategoryService) GetCategoriesByIds(ids []uint) ([]*model
 		return []*models.CategoryModel{}, nil
 	}
 	var categories []*models.CategoryModel
-	result := categoryService.db.Where("id IN ?", ids).Find(&categories)
+	result := categoryService.Db.Where("id IN ?", ids).Find(&categories)
 	if result.Error != nil {
 		return nil, errors.New("failed to fetch categories")
 	}

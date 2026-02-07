@@ -11,6 +11,7 @@ import (
 	"github.com/tshivanshu9/budget-be/common"
 	"github.com/tshivanshu9/budget-be/internal/custom_errors"
 	"github.com/tshivanshu9/budget-be/internal/models"
+	"gorm.io/gorm"
 )
 
 func (h *Handler) CreateBudgetHandler(c *echo.Context) error {
@@ -33,30 +34,44 @@ func (h *Handler) CreateBudgetHandler(c *echo.Context) error {
 	budgetService := services.NewBudgetService(h.DB)
 	categoryService := services.NewCategoryService(h.DB)
 
-	budget, err := budgetService.Create(payload, user.ID)
-	if err != nil {
-		fmt.Println(err)
-		return common.SendInternalServerErrorResponse(c, "Budget creation failed, try again later")
-	}
-
-	if budget.ID == 0 {
-		return common.SendInternalServerErrorResponse(c, "Budget creation failed")
-	}
-
 	categories, err := categoryService.GetCategoriesByIds(payload.Categories)
 	if err != nil {
 		fmt.Println(err)
 		return common.SendInternalServerErrorResponse(c, "Budget creation failed, try again later")
 	}
 
-	err = budgetService.DB.Model(budget).Association("Categories").Replace(categories)
+	var createdBudget *models.BudgetModel
+
+	err = h.DB.Transaction(func(tx *gorm.DB) error {
+		budgetService.DB = tx
+		categoryService.Db = tx
+		var txErr error
+		createdBudget, txErr = budgetService.Create(payload, user.ID)
+		fmt.Println(*createdBudget)
+		if txErr != nil {
+			fmt.Println(txErr)
+			return txErr
+		}
+
+		if createdBudget.ID == 0 {
+			return errors.New("Budget creation failed")
+		}
+
+		txErr = budgetService.DB.Model(createdBudget).Association("Categories").Replace(categories)
+		if txErr != nil {
+			return txErr
+		}
+
+		createdBudget.Categories = categories
+		return nil
+	})
+
 	if err != nil {
-		return common.SendInternalServerErrorResponse(c, "Budget creation failed, try again later")
+		fmt.Println(err)
+		return common.SendInternalServerErrorResponse(c, err.Error())
 	}
 
-	budget.Categories = categories
-
-	return common.SendSuccessResponse(c, "budget created successfully", budget)
+	return common.SendSuccessResponse(c, "budget created successfully", createdBudget)
 }
 
 func (h *Handler) ListBudgetsHandler(c *echo.Context) error {
@@ -114,31 +129,36 @@ func (h *Handler) UpdateBudgetHandler(c *echo.Context) error {
 		return common.SendBadRequestResponse(c, "Invalid budget id")
 	}
 
-	err = budgetService.Update(budget, payload)
+	err = h.DB.Transaction(func(tx *gorm.DB) error {
+		budgetService.DB = tx
+		categoryService := services.NewCategoryService(tx)
+		txErr := budgetService.Update(budget, payload)
+		if txErr != nil {
+			fmt.Println(txErr)
+			return txErr
+		}
+
+		if payload.Categories != nil {
+			categories, txErr := categoryService.GetCategoriesByIds(payload.Categories)
+			if txErr != nil {
+				fmt.Println(txErr)
+				return txErr
+			}
+
+			txErr = budgetService.DB.Model(budget).Association("Categories").Replace(categories)
+			if txErr != nil {
+				fmt.Println(txErr)
+				return txErr
+			}
+			budget.Categories = categories
+		}
+		return nil
+	})
+
 	if err != nil {
 		fmt.Println(err)
-		if errors.Is(err, errors.New("another budget with same title exists for the month, please choose different title or month")) {
-			return common.SendBadRequestResponse(c, err.Error())
-		}
 		return common.SendInternalServerErrorResponse(c, "Failed to update budget")
 	}
-
-	if payload.Categories != nil {
-		categoryService := services.NewCategoryService(h.DB)
-		categories, err := categoryService.GetCategoriesByIds(payload.Categories)
-		if err != nil {
-			fmt.Println(err)
-			return common.SendInternalServerErrorResponse(c, "Failed to update budget")
-		}
-
-		err = budgetService.DB.Model(budget).Association("Categories").Replace(categories)
-		if err != nil {
-			fmt.Println(err)
-			return common.SendInternalServerErrorResponse(c, "Failed to update budget")
-		}
-		budget.Categories = categories
-	}
-
 	return common.SendSuccessResponse(c, "Budget updated successfully", budget)
 }
 
