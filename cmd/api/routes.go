@@ -35,6 +35,7 @@ func (app *Application) routes() {
 	{
 		walletRoutes.POST("/create", app.handler.CreateWalletHandler)
 		walletRoutes.GET("/generate-default", app.handler.GenerateDefaultWalletsHandler)
+		walletRoutes.GET("/user-list", app.handler.ListUserWalletsHandler)
 	}
 	app.server.GET("/", app.handler.Healthcheck)
 }

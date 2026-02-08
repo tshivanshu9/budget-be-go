@@ -50,3 +50,17 @@ func (h *Handler) GenerateDefaultWalletsHandler(c *echo.Context) error {
 	}
 	return common.SendSuccessResponse(c, "Default wallets generated successfully", wallets)
 }
+
+func (h *Handler) ListUserWalletsHandler(c *echo.Context) error {
+	user, ok := c.Get("user").(models.UserModel)
+	if !ok {
+		return common.SendUnauthorizedResponse(c, nil)
+	}
+
+	walletService := services.NewWalletService(h.DB)
+	wallets, err := walletService.ListWalletsForUser(user.ID)
+	if err != nil {
+		return common.SendInternalServerErrorResponse(c, "Failed to fetch wallets, try again later")
+	}
+	return common.SendSuccessResponse(c, "Wallets fetched successfully", wallets)
+}
