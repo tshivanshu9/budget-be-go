@@ -30,5 +30,11 @@ func (app *Application) routes() {
 		budgetRoutes.PUT("/:id/update", app.handler.UpdateBudgetHandler)
 		budgetRoutes.DELETE("/:id/delete", app.handler.DeleteBudgetHandler)
 	}
+
+	walletRoutes := apiGroup.Group("/wallets", app.appMiddleware.AuthenticationMiddleware)
+	{
+		walletRoutes.POST("/create", app.handler.CreateWalletHandler)
+		walletRoutes.GET("/generate-default", app.handler.GenerateDefaultWalletsHandler)
+	}
 	app.server.GET("/", app.handler.Healthcheck)
 }
