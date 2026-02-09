@@ -41,8 +41,8 @@ func (appTokenService *AppTokenService) GenerateResetPasswordToken(user *models.
 }
 
 func (appTokenService *AppTokenService) ValidateResetPasswordToken(user *models.UserModel, token string) (*models.AppTokenModel, error) {
-	var retrievedToken *models.AppTokenModel
-	result := appTokenService.db.Where("target_id = ? AND type = ? and token = ?", user.ID, "reset_password", token).First(retrievedToken)
+	var retrievedToken models.AppTokenModel
+	result := appTokenService.db.Where("target_id = ? AND type = ? and token = ?", user.ID, "reset_password", token).First(&retrievedToken)
 
 	if result.Error != nil {
 		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
@@ -59,7 +59,7 @@ func (appTokenService *AppTokenService) ValidateResetPasswordToken(user *models.
 		return nil, errors.New("password reset token has expired")
 	}
 
-	return retrievedToken, nil
+	return &retrievedToken, nil
 }
 
 func (appTokenService *AppTokenService) InvalidateToken(userId uint, token *models.AppTokenModel) {
