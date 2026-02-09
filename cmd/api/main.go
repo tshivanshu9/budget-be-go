@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"log/slog"
 
-	// "net/http"
 	"os"
 
 	"github.com/joho/godotenv"
@@ -41,10 +40,6 @@ func main() {
 	e.Use(middleware.RequestLogger())
 	e.Use(middlewares.CustomMiddleware)
 
-	// e.GET("/", func(c *echo.Context) error {
-	// 	return c.String(http.StatusOK, "Hello, World!")
-	// })
-
 	appMailer := mailer.NewMailer()
 
 	h := &handlers.Handler{
@@ -63,11 +58,6 @@ func main() {
 		appMiddleware: appMiddleware,
 	}
 
-	// e.GET("/", func(c echo.Context) error {
-	// 	return h.Healthcheck(c)
-	// })
-
-	// e.GET("/", handlers.Healthcheck(h))
 	app.routes()
 
 	fmt.Println(app)

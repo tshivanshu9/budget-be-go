@@ -34,6 +34,9 @@ func (t *TransactionService) Create(payload *requests.CreateTransactionRequest, 
 		WalletId:    payload.WalletId,
 		CategoryId:  payload.CategoryId,
 	}
+	if isReversal {
+		transaction.ParentId = payload.ParentId
+	}
 	result := t.DB.Create(transaction)
 	if result.Error != nil {
 		return nil, result.Error
@@ -60,4 +63,60 @@ func (t *TransactionService) FormatDate(date string) (*time.Time, error) {
 	suppliedDateTime := time.Date(suppliedDate.Year(), suppliedDate.Month(), suppliedDate.Day(),
 		currentTime.Hour(), currentTime.Minute(), currentTime.Second(), currentTime.Nanosecond(), time.UTC)
 	return &suppliedDateTime, nil
+}
+
+func (transactionService *TransactionService) FindById(id uint) (*models.TransactionModel, error) {
+	var transaction models.TransactionModel
+	result := transactionService.DB.Joins("Wallet").Joins("Category").Where("transactions.id = ?", id).First(&transaction)
+	if result.Error != nil {
+		return nil, result.Error
+	}
+	return &transaction, nil
+}
+
+func (transactionService *TransactionService) FindByParentId(id uint) (*models.TransactionModel, error) {
+	var transaction models.TransactionModel
+	result := transactionService.DB.Where("parent_id = ?", id).First(&transaction)
+	if result.Error != nil {
+		return nil, result.Error
+	}
+	return &transaction, nil
+}
+
+func (t *TransactionService) Reverse(transaction *models.TransactionModel) error {
+	transactionDate := time.Now()
+	description := "Reversal of transaction ID " + string(rune(transaction.ID))
+	transactionRequest := requests.CreateTransactionRequest{
+		ParentId:    &transaction.ID,
+		WalletId:    transaction.WalletId,
+		Description: &description,
+		Date:        transactionDate.Format(time.DateOnly),
+		Amount:      transaction.Amount,
+	}
+	err := t.DB.Transaction(func(tx *gorm.DB) error {
+		walletService := NewWalletService(tx)
+		if transaction.Type == INCOME {
+			transaction.Type = EXPENSE
+			txErr := walletService.DecrementWalletBalance(transaction.Wallet, transaction.Amount)
+			if txErr != nil {
+				return errors.New("Transaction reversal failed, try again later")
+			}
+		}
+		if transaction.Type == EXPENSE {
+			transaction.Type = INCOME
+			txErr := walletService.IncrementWalletBalance(transaction.Wallet, transaction.Amount)
+			if txErr != nil {
+				return errors.New("Transaction reversal failed, try again later")
+			}
+		}
+		_, txErr := t.Create(&transactionRequest, transaction.UserId, true, &transactionDate)
+		if txErr != nil {
+			return errors.New("Transaction reversal failed, try again later")
+		}
+		return nil
+	})
+	if err != nil {
+		return err
+	}
+	return nil
 }

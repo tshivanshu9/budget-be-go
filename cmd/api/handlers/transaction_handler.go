@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"errors"
+	"strconv"
 
 	"github.com/labstack/echo/v5"
 	"github.com/tshivanshu9/budget-be/cmd/api/requests"
@@ -83,4 +84,42 @@ func (h *Handler) CreateTransactionHandler(c *echo.Context) error {
 	}
 
 	return common.SendSuccessResponse(c, "Transaction created successfully", transaction)
+}
+
+func (h *Handler) ReverseTransactionHandler(c *echo.Context) error {
+	user, ok := c.Get("user").(models.UserModel)
+	if !ok {
+		return common.SendUnauthorizedResponse(c, nil)
+	}
+
+	transactionIdInt, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		return common.SendBadRequestResponse(c, "Invalid transaction id")
+	}
+	transactionId := uint(transactionIdInt)
+	transactionService := services.NewTransactionService(h.DB)
+	transaction, err := transactionService.FindById(transactionId)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return common.SendBadRequestResponse(c, "Transaction not found")
+		}
+		return common.SendInternalServerErrorResponse(c, "Failed to fetch transaction, try again later")
+	}
+
+	if transaction.UserId != user.ID {
+		return common.SendUnauthorizedResponse(c, nil)
+	}
+	if transaction.IsReversal {
+		return common.SendBadRequestResponse(c, "Cannot reverse an already reversed transaction")
+	}
+
+	transactionWithParentId, err := transactionService.FindByParentId(transaction.ID)
+	if err == nil && transactionWithParentId != nil {
+		return common.SendBadRequestResponse(c, "Cannot reverse a transaction that has already been reversed")
+	}
+	err = transactionService.Reverse(transaction)
+	if err != nil {
+		return common.SendInternalServerErrorResponse(c, err.Error())
+	}
+	return common.SendSuccessResponse(c, "Transaction reversed successfully", nil)
 }

@@ -175,6 +175,9 @@ func (budgetService *BudgetService) GetBudgetsByCategoryId(db *gorm.DB, category
 }
 
 func (budgetService *BudgetService) DecrementBudgetBalance(db *gorm.DB, categoryId *uint, amount float64, userId uint) {
+	if categoryId == nil {
+		return
+	}
 	budgets, _ := budgetService.GetBudgetsByCategoryId(db, *categoryId)
 	for _, budget := range budgets {
 		db.Scopes(common.WhereUserIdScope(userId)).Updates(models.BudgetModel{Amount: budget.Amount - amount})
@@ -182,6 +185,9 @@ func (budgetService *BudgetService) DecrementBudgetBalance(db *gorm.DB, category
 }
 
 func (budgetService *BudgetService) IncrementBudgetBalance(db *gorm.DB, categoryId *uint, amount float64, userId uint) {
+	if categoryId == nil {
+		return
+	}
 	budgets, _ := budgetService.GetBudgetsByCategoryId(db, *categoryId)
 	for _, budget := range budgets {
 		db.Scopes(common.WhereUserIdScope(userId)).Updates(models.BudgetModel{Amount: budget.Amount + amount})

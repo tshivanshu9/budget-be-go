@@ -41,6 +41,7 @@ func (app *Application) routes() {
 	transactionRoutes := apiGroup.Group("/transactions", app.appMiddleware.AuthenticationMiddleware)
 	{
 		transactionRoutes.POST("/create", app.handler.CreateTransactionHandler)
+		transactionRoutes.PUT("/:id/reverse", app.handler.ReverseTransactionHandler)
 	}
 	app.server.GET("/", app.handler.Healthcheck)
 }
