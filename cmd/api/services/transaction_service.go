@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/tshivanshu9/budget-be/cmd/api/requests"
+	"github.com/tshivanshu9/budget-be/common"
 	"github.com/tshivanshu9/budget-be/internal/models"
 	"gorm.io/gorm"
 )
@@ -119,4 +120,14 @@ func (t *TransactionService) Reverse(transaction *models.TransactionModel) error
 		return err
 	}
 	return nil
+}
+
+func (transactionService *TransactionService) List(transactions []*models.TransactionModel, userId uint, pagination *common.Pagination) (*common.Pagination, error) {
+	result := transactionService.DB.Scopes(pagination.Paginate(), common.WhereUserIdScope(userId)).Preload("Category").Preload("Wallet").Find(&transactions)
+	if result.Error != nil {
+		return nil, errors.New("failed to fetch transactions")
+	}
+
+	pagination.Items = transactions
+	return pagination, nil
 }

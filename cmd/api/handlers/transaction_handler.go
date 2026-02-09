@@ -123,3 +123,19 @@ func (h *Handler) ReverseTransactionHandler(c *echo.Context) error {
 	}
 	return common.SendSuccessResponse(c, "Transaction reversed successfully", nil)
 }
+
+func (h *Handler) ListTransactionsForUserHandler(c *echo.Context) error {
+	user, ok := c.Get("user").(models.UserModel)
+	if !ok {
+		return common.SendUnauthorizedResponse(c, nil)
+	}
+
+	var transactions []*models.TransactionModel
+	pagination := common.NewPaginator(transactions, c.Request(), h.DB)
+	transactionService := services.NewTransactionService(h.DB)
+	paginatedTransactions, err := transactionService.List(transactions, user.ID, pagination)
+	if err != nil {
+		return common.SendInternalServerErrorResponse(c, "Failed to fetch transactions, try again later")
+	}
+	return common.SendSuccessResponse(c, "Transactions fetched successfully", paginatedTransactions)
+}
