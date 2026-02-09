@@ -159,3 +159,31 @@ func (budgetService *BudgetService) Delete(budget *models.BudgetModel) error {
 	}
 	return nil
 }
+
+func (budgetService *BudgetService) GetBudgetsByCategoryId(db *gorm.DB, categoryId uint) ([]*models.BudgetModel, error) {
+	if db == nil {
+		db = budgetService.DB
+	}
+	var budgets []*models.BudgetModel
+	result := db.Joins("JOIN budget_categories ON budget_categories.budget_id = budgets.id").
+		Where("budget_categories.category_id = ?", categoryId).
+		Find(&budgets)
+	if result.Error != nil {
+		return nil, errors.New("failed to fetch budgets for category")
+	}
+	return budgets, nil
+}
+
+func (budgetService *BudgetService) DecrementBudgetBalance(db *gorm.DB, categoryId *uint, amount float64, userId uint) {
+	budgets, _ := budgetService.GetBudgetsByCategoryId(db, *categoryId)
+	for _, budget := range budgets {
+		db.Scopes(common.WhereUserIdScope(userId)).Updates(models.BudgetModel{Amount: budget.Amount - amount})
+	}
+}
+
+func (budgetService *BudgetService) IncrementBudgetBalance(db *gorm.DB, categoryId *uint, amount float64, userId uint) {
+	budgets, _ := budgetService.GetBudgetsByCategoryId(db, *categoryId)
+	for _, budget := range budgets {
+		db.Scopes(common.WhereUserIdScope(userId)).Updates(models.BudgetModel{Amount: budget.Amount + amount})
+	}
+}

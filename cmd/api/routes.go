@@ -37,5 +37,10 @@ func (app *Application) routes() {
 		walletRoutes.GET("/generate-default", app.handler.GenerateDefaultWalletsHandler)
 		walletRoutes.GET("/user-list", app.handler.ListUserWalletsHandler)
 	}
+
+	transactionRoutes := apiGroup.Group("/transactions", app.appMiddleware.AuthenticationMiddleware)
+	{
+		transactionRoutes.POST("/create", app.handler.CreateTransactionHandler)
+	}
 	app.server.GET("/", app.handler.Healthcheck)
 }

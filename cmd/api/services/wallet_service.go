@@ -69,3 +69,22 @@ func (w *WalletService) ListWalletsForUser(userId uint) ([]*models.WalletModel, 
 	}
 	return wallets, nil
 }
+
+func (w *WalletService) GetWalletByIdAndUserId(id uint, userId uint) (*models.WalletModel, error) {
+	var wallet models.WalletModel
+	result := w.DB.Where("id = ? AND user_id = ?", id, userId).First(&wallet)
+	if result.Error != nil {
+		return nil, result.Error
+	}
+	return &wallet, nil
+}
+
+func (w *WalletService) IncrementWalletBalance(wallet *models.WalletModel, amount float64) error {
+	result := w.DB.Model(wallet).Update("balance", gorm.Expr("balance + ?", amount))
+	return result.Error
+}
+
+func (w *WalletService) DecrementWalletBalance(wallet *models.WalletModel, amount float64) error {
+	result := w.DB.Model(wallet).Update("balance", gorm.Expr("balance - ?", amount))
+	return result.Error
+}
