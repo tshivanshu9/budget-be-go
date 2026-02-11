@@ -25,6 +25,7 @@ func main() {
 		"Shopping",
 		"Travel",
 		"Savings & Investments",
+		"Transfer",
 	}
 
 	categories := make([]models.CategoryModel, len(categoryNames))

@@ -44,5 +44,7 @@ func (app *Application) routes() {
 		transactionRoutes.PUT("/:id/reverse", app.handler.ReverseTransactionHandler)
 		transactionRoutes.GET("/list", app.handler.ListTransactionsForUserHandler)
 	}
+
+	apiGroup.POST("/transfer", app.handler.TransferHanlder, app.appMiddleware.AuthenticationMiddleware)
 	app.server.GET("/", app.handler.Healthcheck)
 }

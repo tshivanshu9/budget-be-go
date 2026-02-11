@@ -78,3 +78,14 @@ func (categoryService *CategoryService) GetCategoriesByIds(ids []uint) ([]*model
 	}
 	return categories, nil
 }
+
+func (categoryService *CategoryService) FindBySlug(slug string, isCustom bool) (*models.CategoryModel, error) {
+	slug = strings.ToLower(slug)
+	slug = strings.ReplaceAll(slug, " ", "-")
+	var category models.CategoryModel
+	result := categoryService.Db.Where("slug = ? AND is_custom = ?", slug, isCustom).First(&category)
+	if result.Error != nil {
+		return nil, result.Error
+	}
+	return &category, nil
+}
