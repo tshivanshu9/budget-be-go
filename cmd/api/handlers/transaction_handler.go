@@ -5,6 +5,7 @@ import (
 	"strconv"
 
 	"github.com/labstack/echo/v5"
+	"github.com/tshivanshu9/budget-be/cmd/api/filters"
 	"github.com/tshivanshu9/budget-be/cmd/api/requests"
 	"github.com/tshivanshu9/budget-be/cmd/api/services"
 	"github.com/tshivanshu9/budget-be/common"
@@ -130,9 +131,22 @@ func (h *Handler) ListTransactionsForUserHandler(c *echo.Context) error {
 		return common.SendUnauthorizedResponse(c, nil)
 	}
 
+	filter := new(filters.TransactionFilter)
+	err := (&echo.DefaultBinder{}).Bind(c, filter)
+	if err != nil {
+		return common.SendBadRequestResponse(c, "invalid query params")
+	}
+
+	err = filter.ValidateDates()
+	if err != nil {
+		return common.SendBadRequestResponse(c, err.Error())
+	}
+
+	query := filter.ApplyFilters(h.DB)
+	transactionService := services.NewTransactionService(query)
+
 	var transactions []*models.TransactionModel
-	pagination := common.NewPaginator(transactions, c.Request(), h.DB)
-	transactionService := services.NewTransactionService(h.DB)
+	pagination := common.NewPaginator(transactions, c.Request(), query)
 	paginatedTransactions, err := transactionService.List(transactions, user.ID, pagination)
 	if err != nil {
 		return common.SendInternalServerErrorResponse(c, "Failed to fetch transactions, try again later")
